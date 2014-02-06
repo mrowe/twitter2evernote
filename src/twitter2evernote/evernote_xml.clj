@@ -1,4 +1,4 @@
-(ns dayone2evernote.evernote-xml
+(ns twitter2evernote.evernote-xml
   (:require [clojure.data.xml :as xml])
   (:import java.text.SimpleDateFormat
            java.util.TimeZone
@@ -41,10 +41,13 @@
 
 (defn- content-string
   [entry]
-  (wrap "en-note"
-        (if (xml? (wrap "body" (:content entry)))
-          (:content entry)
-          (wrap "pre" (escape (:content-raw entry))))))
+  (str 
+   "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
+   "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
+   (wrap "en-note"
+         (if (xml? (wrap "body" (:content entry)))
+           (:content entry)
+           (wrap "pre" (escape (:content-raw entry)))))))
 
 (defn- entry-element
   [entry]
@@ -59,6 +62,6 @@
   ""
   [entries]
   (xml/element :en-export {:export-date (now)
-                           :application "dayone2evernote"
+                           :application "twitter2evernote"
                            :version     "1.0"}
                (map entry-element entries)))
