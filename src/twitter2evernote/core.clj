@@ -1,6 +1,6 @@
 (ns twitter2evernote.core
   (:require [clojure.data.xml :as xml]
-            [clojure.data.csv :as csv]
+            [clojure.data.json :as json]
             [clojure.string :as string]
             [markdown.core :as md])
   (:import java.text.SimpleDateFormat
@@ -8,6 +8,11 @@
   (:gen-class))
 
 (use 'twitter2evernote.evernote-xml)
+
+
+(defn input-files
+  [dir]
+  (filter #(.endsWith (.getName %) ".js") (file-seq (clojure.java.io/file dir))))
 
 (defn- body
   [id text timestamp]
@@ -21,28 +26,38 @@
 (defn parse-date
   [date]
   (.parse date-format date))
-  
+
 (defn entry
   [e]
-  (let [id (e 0)
-        text (e 5)
-        timestamp (e 3)]
+  (let [id (e :id)
+        text (e :text)
+        timestamp (e :created_at)]
   {:id id
    :title text
    :timestamp (parse-date timestamp)
    :body (body id text timestamp)}))
 
-(defn take-csv
-  "Takes file name and reads data."
-  [fname]
-)
+(defn- read-json
+  "Read a twitter js file as json (stripping off the first line)"
+  [file]
+  (let [js (slurp file)
+        json (clojure.string/replace-first js #"^.*\n" "")]
+    (json/read-json json)))
+
+(defn- entries
+  "A seq of entries read from file"
+  [file]
+  (map entry (read-json file)))
 
 (defn twitter-entries
-  [file]
-  (with-open [file (clojure.java.io/reader file)]
-    (map entry (doall (map (comp first csv/read-csv) (line-seq file))))))
+  [dir]
+  (let [files (input-files dir)]
+    (flatten (map entries files))))
 
-;;(twitter-entries "tweets.csv")
+(defn dayone-entries
+  [dir]
+  (let [files (input-files dir)]
+    (map entry files)))
 
 (defn- title
   "Derives a title from the content text."
@@ -71,7 +86,7 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (if (< (count args) 2) (binding [*out* *err*]
-                           (println "Usage: $0 <input-file> <output-file>") 
+                           (println "Usage: $0 <input-dir> <output-file>") 
                            (System/exit 1)))
  
   (let [[in out] args]
