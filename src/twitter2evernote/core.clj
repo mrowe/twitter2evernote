@@ -47,33 +47,30 @@
 (defn- entries
   "A seq of entries read from file"
   [file]
-  (map entry (read-json file)))
+  (println (str "Processing file: " file))
+  (let [e (map entry (read-json file))]
+    (println (str "    processed " (count e) " entries"))
+    e))
 
 (defn twitter-entries
   [dir]
   (let [files (input-files dir)]
     (flatten (map entries files))))
 
-(defn dayone-entries
-  [dir]
-  (let [files (input-files dir)]
-    (map entry files)))
-
-(defn- title
-  "Derives a title from the content text."
-  [text]
-  text)
-
 (defn- html-content
   "Parse content as markdown and return html"
   [content]
   (md/md-to-html-string content))
 
+(defn- clean
+  "Remove dodgy low-ascii characters"
+  [text]
+  (clojure.string/replace text #"[\u0000-\u0008\u000b\u000c\u000e-\u001f]" ""))
+
 (defn twitter-entry-to-evernote
   "Return a data map for entry"
   [entry]
-  (println (str "Processing entry: " (entry :title)))
-  {:title   (entry :title)
+  {:title   (clean (entry :title))
    :content (html-content (entry :body))
    :content-raw (entry :body)
    :created (entry :timestamp)
@@ -91,5 +88,5 @@
  
   (let [[in out] args]
     (with-open [out-file (java.io.FileWriter. out)]
-      (xml/emit (evernote-doc (map twitter-entry-to-evernote (twitter-entries in))) out-file))
-    (str "Wrote Evernote export file to " out)))
+      (xml/emit (evernote-doc (map twitter-entry-to-evernote (twitter-entries in))) out-file)
+      (println "Wrote Evernote export file to " out))))
