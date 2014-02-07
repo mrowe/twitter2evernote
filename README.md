@@ -15,7 +15,7 @@ containing Twitter archive JS files (e.g.
 ~/Downloads/tweets/data/js/tweets) and the name of the file in which
 to store the Evernote export-format file:
 
-    $ java -jar twitter2evernote-0.1.0-standalone.jar ~/Downloads/tweets/data/js/tweest/ twitter-notes.enex
+    $ java -jar twitter2evernote-0.1.0-standalone.jar ~/Downloads/tweets/data/js/tweets/ twitter-notes.enex
 
 
 ## Bugs
