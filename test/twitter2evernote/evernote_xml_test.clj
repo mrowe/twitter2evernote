@@ -1,7 +1,7 @@
-(ns dayone2evernote.evernote-xml-test
+(ns twitter2evernote.evernote-xml-test
   (:require [clojure.data.xml :as xml])
   (:use clojure.test
-        dayone2evernote.evernote-xml)
+        twitter2evernote.evernote-xml)
   (:import java.util.Date))
 
 (deftest evernote-doc-test
