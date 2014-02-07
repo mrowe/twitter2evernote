@@ -2,7 +2,7 @@
 
 # twitter2evernote
 
-Read a Twitter archive CSV file and write an Evernote export file.
+Read a Twitter archive and write an Evernote export file.
 
 ## Installation
 
