@@ -11,20 +11,16 @@ Download from https://github.com/mrowe/twitter2evernote and run `lein jar`.
 ## Usage
 
 `twitter2evernote` takes two arguments: a path to the directory
-containing Day One entry files (e.g. ~/Dropbox/Apps/Day
-One/Journal.twitter/entries) and the name of the file in which to store
-the Evernote export-format file:
+containing Twitter archive JS files (e.g.
+~/Downloads/tweets/data/js/tweets) and the name of the file in which
+to store the Evernote export-format file:
 
-    $ java -jar twitter2evernote-0.1.0-standalone.jar ~/Dropbox/Apps/Day\ One/Journal.twitter/entries/ twitter-notes.enex
+    $ java -jar twitter2evernote-0.1.0-standalone.jar ~/Downloads/tweets/data/js/tweest/ twitter-notes.enex
 
 
 ## Bugs
 
- * Note title is derived by pulling the first sentence from the first
-   line of the Day One note content, truncating to 80 chars if
-   necessary. This is pretty naive.
-
- * Tags don't seem to get imported by Evernote. I don't know why not.
+ * Doesn't handle incorrect character entities in the Twitter JS (e.g. \uD83D)
 
 ## History
 
