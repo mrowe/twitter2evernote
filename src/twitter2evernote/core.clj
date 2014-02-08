@@ -9,35 +9,49 @@
 
 (use 'twitter2evernote.evernote-xml)
 
+(defn- matches-year?
+  [file year]
+  (and (.startsWith file year)
+       (.endsWith file ".js")))
 
 (defn input-files
-  [dir]
-  (filter #(.endsWith (.getName %) ".js") (file-seq (clojure.java.io/file dir))))
+  [dir year]
+  (filter #(matches-year? (.getName %) year) (file-seq (clojure.java.io/file dir))))
+
+;; lifted from hiccup
+(defn- escape
+  "Change special characters into XML character entities."
+  [s]
+  (if (nil? s)
+    ""
+    (.. ^String s
+        (replace "&"  "&amp;")
+        (replace "<"  "&lt;")
+        (replace ">"  "&gt;")
+        (replace "\"" "&quot;"))))
+
+(defn- clean
+  "Remove dodgy low-ascii characters"
+  [text]
+  (clojure.string/replace text #"[\u0000-\u0008\u000b\u000c\u000e-\u001f]" ""))
 
 (defn- body
   [id text timestamp]
   (str
-   text
+   "<blockquote class=\"twitter-tweet\" lang=\"en\">"
+   "<p>" (-> text escape clean) "</p>"
+   "&mdash; Michael Rowe (@mrowe) <a href=\"https://twitter.com/mrowe/status/" id "\">" timestamp "</a>"
+   "</blockquote>"
    "<br/>"
-   "via Twitter https://twitter.com/mrowe/status/" id
-   "<br/>"
-   "at " timestamp
-   "<br/>"))
-
-(def date-format (SimpleDateFormat. "yyyy-MM-dd HH:mm:ss Z"))
-(defn parse-date
-  [date]
-  (.parse date-format date))
+   "via Twitter https://twitter.com/mrowe"
+   "<br/><br/>"
+   timestamp
+   "<br/><br/>"
+   "-----<br/><br/>"))
 
 (defn entry
-  [e]
-  (let [id (e :id)
-        text (e :text)
-        timestamp (e :created_at)]
-  {:id id
-   :title text
-   :timestamp (parse-date timestamp)
-   :body (body id text timestamp)}))
+  [ { :keys [id text created_at] } ]
+    (body id text created_at))
 
 (defn- read-json
   "Read a twitter js file as json (stripping off the first line)"
@@ -55,28 +69,9 @@
     e))
 
 (defn twitter-entries
-  [dir]
-  (let [files (input-files dir)]
+  [dir year]
+  (let [files (input-files dir year)]
     (flatten (map entries files))))
-
-(defn- html-content
-  "Parse content as markdown and return html"
-  [content]
-  (md/md-to-html-string content))
-
-(defn- clean
-  "Remove dodgy low-ascii characters"
-  [text]
-  (clojure.string/replace text #"[\u0000-\u0008\u000b\u000c\u000e-\u001f]" ""))
-
-(defn twitter-entry-to-evernote
-  "Return a data map for entry"
-  [entry]
-  {:title   (clean (entry :title))
-   :content (html-content (clean (entry :body)))
-   :content-raw (entry :body)
-   :created (entry :timestamp)
-   :updated (entry :timestamp)})
 
 (defn -main
   ""
@@ -85,10 +80,11 @@
   (alter-var-root #'*read-eval* (constantly false))
 
   (if (< (count args) 2) (binding [*out* *err*]
-                           (println "Usage: $0 <input-dir> <output-file>") 
+                           (println "Usage: $0 <input-glob> <year> <output-file>")
                            (System/exit 1)))
  
-  (let [[in out] args]
+  (let [[in year out] args
+        body (apply str (twitter-entries in year))]
     (with-open [out-file (java.io.FileWriter. out)]
-      (xml/emit (evernote-doc (map twitter-entry-to-evernote (twitter-entries in))) out-file)
-      (println "Wrote Evernote export file to " out))))
+      (xml/emit (evernote-doc body year) out-file)
+      (println "Wrote Evernote export file to" out))))

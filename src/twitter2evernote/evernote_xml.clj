@@ -11,57 +11,29 @@
 
 (defn- now [] (format-date (Date.)))
 
-;; lifted from hiccup
-(defn- escape
-  "Change special characters into XML character entities."
-  [s]
-  (if (nil? s)
-    ""
-    (.. ^String s
-        (replace "&"  "&amp;")
-        (replace "<"  "&lt;")
-        (replace ">"  "&gt;")
-        (replace "\"" "&quot;"))))
-
-(defn- tag-element
-  [tag]
-  (xml/element :tag {} tag))
-
-(defn- xml?
-  [s]
-  (try
-    (xml/emit-str (xml/parse-str s))
-    (catch Throwable e
-      false)))
-
 (defn- wrap
   "Wrap string s in xml-ish tag"
   [tag s]
   (str "<" tag ">" s "</" tag ">"))
 
 (defn- content-string
-  [entry]
+  [body]
   (str 
    "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"
    "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">"
    (wrap "en-note"
-         (if (xml? (wrap "body" (:content entry)))
-           (:content entry)
-           (wrap "pre" (escape (:content-raw entry)))))))
+         (wrap "body" body))))
 
 (defn- entry-element
-  [entry]
+  [body year]
   (xml/element :note {}
-               (xml/element :title {} (:title entry))
-               (xml/element :content {} (xml/cdata (content-string entry)))
-               (xml/element :created {} (format-date (:created entry)))
-               (xml/element :updated {} (format-date (:updated entry)))
-               (map tag-element (:tags entry))))
+               (xml/element :title {} (str "Twitter Archive " year))
+               (xml/element :content {} (xml/cdata (content-string body)))))
 
 (defn evernote-doc
   ""
-  [entries]
+  [body year]
   (xml/element :en-export {:export-date (now)
                            :application "twitter2evernote"
                            :version     "1.0"}
-               (map entry-element entries)))
+               (entry-element body year)))
