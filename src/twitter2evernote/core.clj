@@ -64,7 +64,7 @@
   "A seq of entries read from file"
   [file]
   (println (str "Processing file: " file))
-  (let [e (map entry (read-json file))]
+  (let [e (reverse (map entry (read-json file)))]
     (println (str "    processed " (count e) " entries"))
     e))
 
