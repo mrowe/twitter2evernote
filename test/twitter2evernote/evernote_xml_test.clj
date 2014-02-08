@@ -7,11 +7,8 @@
 (deftest evernote-doc-test
 
   (let [now (Date.)
-        entry {:title "A Title"
-               :content "<p>Some content.</p>\n<p>More content.</p>"
-               :created now
-               :updated now}
-        enex (xml/emit-str (evernote-doc [entry]))]
+        entry "<p>Some content.</p>\n<p>More content.</p>"
+        enex (xml/emit-str (evernote-doc [entry] "2014"))]
 
     ;; this is all pretty embarassing really
     (testing "Creates xml document"
@@ -24,13 +21,10 @@
       (is (re-find #"<note>" enex)))
 
     (testing "Contains the title"
-      (is (re-find #"<title>A Title</title>" enex)))
+      (is (re-find #"<title>Twitter Archive 2014</title>" enex)))
 
     (testing "Contains the content as CDATA"
       (is (re-find #"<content><!\[CDATA\[" enex)))
 
     (testing "Contains HTML tags in the content"
-      (is (re-find #"<en-note><p>Some content.</p>" enex)))
-
-    (testing "Contains the created date in the correct format"
-      (is (re-find #"<created>\d{8}T\d{6}(\+\d{4}|Z)</created>" enex)))))
+      (is (re-find #"<p>Some content.</p>" enex)))))
