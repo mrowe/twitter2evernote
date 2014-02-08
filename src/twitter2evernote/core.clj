@@ -17,6 +17,8 @@
 (defn- body
   [id text timestamp]
   (str
+   text
+   "<br/>"
    "via Twitter https://twitter.com/mrowe/status/" id
    "<br/>"
    "at " timestamp
@@ -71,7 +73,7 @@
   "Return a data map for entry"
   [entry]
   {:title   (clean (entry :title))
-   :content (html-content (entry :body))
+   :content (html-content (clean (entry :body)))
    :content-raw (entry :body)
    :created (entry :timestamp)
    :updated (entry :timestamp)})
