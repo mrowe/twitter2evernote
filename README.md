@@ -21,7 +21,11 @@ file:
 
 ## Bugs
 
- * Doesn't handle incorrect character entities in the Twitter JS (e.g. \uD83D)
+ * Doesn't handle incorrect character entities in the Twitter JS (e.g. \uD83D) very well.
+
+* Trying to sync after import results in "invalid content" error.
+   Going into each note and making a trivial change (adding a space)
+   seems to make it happy.
 
 ## History
 
